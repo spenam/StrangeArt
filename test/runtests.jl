@@ -17,8 +17,33 @@ using .StrangeArt
     @test_throws ArgumentError henon_points(a=Inf)
 end
 
+@testset "Clifford and de Jong attractors" begin
+    clifford = clifford_points(iterations=2, discard=0)
+    @test clifford[1] == (1.0, 0.7)
+    @test clifford[2][1] ≈ sin(-1.4 * 0.7) + cos(-1.4)
+    @test clifford[2][2] ≈ sin(1.6) + 0.7 * cos(1.6 * 0.7)
+    @test isempty(clifford_points(iterations=0, discard=0))
+    @test_throws ArgumentError clifford_points(iterations=-1)
+    @test_throws ArgumentError clifford_points(discard=-1)
+    @test_throws ArgumentError clifford_points(a=Inf)
+
+    dejong = dejong_points(iterations=2, discard=0)
+    @test dejong[1] == (-1.0, -1.0)
+    @test dejong[2][1] ≈ sin(2.24) - cos(-0.43)
+    @test dejong[2][2] ≈ sin(0.65) - cos(2.43)
+    @test length(dejong_points(iterations=5, discard=0)) == 5
+    @test_throws ArgumentError dejong_points(discard=-1)
+    @test_throws ArgumentError dejong_points(d=NaN)
+
+    @test generate_points("Clifford"; iterations=3, discard=0) ==
+          clifford_points(iterations=3, discard=0)
+    @test generate_points(:dejong; iterations=3, discard=0) ==
+          dejong_points(iterations=3, discard=0)
+end
+
 @testset "ODE attractors" begin
-    @test available_systems() == (:henon, :lorenz, :rossler, :thomas)
+    @test available_systems() ==
+          (:clifford, :dejong, :henon, :lorenz, :rossler, :thomas)
     @test generate_points("HeNoN"; iterations=2, discard=0) ==
           henon_points(iterations=2, discard=0)
 
@@ -242,6 +267,19 @@ end
             height=80,
         ) == values_path
         @test gif_frame_count(read(values_path)) == 4
+
+        for system in (:clifford, :dejong)
+            path = joinpath(directory, "$system.gif")
+            @test write_transition_gif(
+                path;
+                system,
+                frames=2,
+                points=20,
+                width=160,
+                height=80,
+            ) == path
+            @test gif_frame_count(read(path)) == 2
+        end
     end
 
     @test_throws ArgumentError write_transition_gif(
