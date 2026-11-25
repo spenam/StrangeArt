@@ -9,8 +9,8 @@ small `Giflib_jll` package.
 
 ## Set up
 
-With Julia installed, instantiate the project dependencies from the repository
-root:
+Requires Julia 1.10 or later. Instantiate the project dependencies from the
+repository root:
 
 ```powershell
 julia --project=. -e "using Pkg; Pkg.instantiate()"
@@ -24,7 +24,7 @@ Hénon remains the default:
 julia --project=. bin\strange-art.jl henon.svg
 ```
 
-Select a continuous-time system with `--system`:
+Choose a system with `--system`:
 
 ```powershell
 julia --project=. bin\strange-art.jl lorenz.svg --system lorenz --points 50000 --projection xz
@@ -74,8 +74,8 @@ override the range. `--delay` sets the frame delay in centiseconds, and
 samples in each frame.
 With `--system all`, six files are written using the output path as a prefix
 (for example, `transitions-lorenz.gif`); use the default `xy` projection so it
-also works for the three 2D discrete maps. GIF dimensions are currently fixed
-at 480×360 pixels.
+also works for the three 2D discrete maps. CLI-generated transition GIFs are
+fixed at 480×360 pixels.
 
 For a reusable batch of parameter-colored PNGs, edit the per-system value lists
 and settings in `scripts/generate-all-attractors.jl`, then run:
@@ -129,9 +129,5 @@ The Julia REPL exposes API descriptions through help mode, for example
 ## Run tests
 
 ```powershell
-julia --project=. test\runtests.jl
+julia --project=. -e "using Pkg; Pkg.test()"
 ```
-
-The attractor generators and renderers are assembled in `src/StrangeArt.jl`.
-ODE generators accept `duration`, `dt`, and `discard` keywords; system
-parameters and initial states can also be customized through `generate_points`.
