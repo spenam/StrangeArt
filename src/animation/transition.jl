@@ -4,6 +4,8 @@
 Return the control parameter and default sweep range for a built-in system.
 """
 function _transition_configuration(system::Symbol)
+    system === :clifford && return (parameter=:a, start=-1.6, stop=-1.2)
+    system === :dejong && return (parameter=:a, start=-2.6, stop=-1.9)
     system === :henon && return (parameter=:a, start=0.8, stop=1.4)
     system === :lorenz && return (parameter=:rho, start=20.0, stop=28.0)
     system === :rossler && return (parameter=:c, start=2.0, stop=6.0)
@@ -17,7 +19,15 @@ end
 Generate one orbit from a built-in system at a single control-parameter value.
 """
 function _transition_points(system, value, count, projection)
-    if system === :henon
+    if system === :clifford
+        indices = _projection_indices(projection, 2)
+        orbit = clifford_points(a=value, iterations=count)
+        return [(point[indices[1]], point[indices[2]]) for point in orbit]
+    elseif system === :dejong
+        indices = _projection_indices(projection, 2)
+        orbit = dejong_points(a=value, iterations=count)
+        return [(point[indices[1]], point[indices[2]]) for point in orbit]
+    elseif system === :henon
         indices = _projection_indices(projection, 2)
         orbit = henon_points(a=value, iterations=count)
         return [(point[indices[1]], point[indices[2]]) for point in orbit]
@@ -84,7 +94,8 @@ function write_transition_gif(
 
     first_value = start === nothing ? configuration.start : Float64(start)
     last_value = stop === nothing ? configuration.stop : Float64(stop)
-    _projection_indices(projection, selected === :henon ? 2 : 3)
+    dimensions = selected in (:clifford, :dejong, :henon) ? 2 : 3
+    _projection_indices(projection, dimensions)
 
     if parameter_values === nothing
         frame_count = frames === nothing ? 24 : frames
@@ -142,7 +153,7 @@ function write_transition_gifs(
         throw(ArgumentError("systems must be selected from available_systems()"))
     parameter_values !== nothing && length(systems) > 1 &&
         throw(ArgumentError("parameter_values can only be used with one selected system"))
-    if :henon in systems
+    if any(system -> system in (:clifford, :dejong, :henon), systems)
         _projection_indices(projection, 2)
     end
 
