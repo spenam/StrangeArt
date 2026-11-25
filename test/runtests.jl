@@ -163,6 +163,7 @@ end
             width=320,
             height=240,
             dpi=300,
+            bounds=(-2.0, 2.0, -2.0, 2.0),
         ) == path
 
         bytes = read(path)
@@ -186,6 +187,12 @@ end
         [(0.0, 0.0)];
         color_values=[1.0],
         dpi=0,
+    )
+    @test_throws ArgumentError write_sweep_png(
+        "unused.png",
+        [(0.0, 0.0)];
+        color_values=[1.0],
+        bounds=(-2.0, -2.0, -1.0, 1.0),
     )
 end
 
@@ -244,6 +251,16 @@ end
             height=80,
         ) == henon_path
         @test gif_frame_count(read(henon_path)) == 3
+
+        palette_path = joinpath(directory, "custom-palette.gif")
+        palette = StrangeArt._gif_palette()
+        palette[2] = StrangeArt._GifColor(0x12, 0x34, 0x56)
+        @test StrangeArt._encode_gif(
+            palette_path,
+            fill(UInt8(1), 2, 2, 1);
+            palette,
+        ) == palette_path
+        @test read(palette_path)[17:19] == UInt8[0x12, 0x34, 0x56]
 
         lorenz_path = joinpath(directory, "sweep-lorenz.gif")
         paths = write_transition_gifs(
