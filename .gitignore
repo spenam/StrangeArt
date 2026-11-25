@@ -1,0 +1,11 @@
+# Julia local files
+/Manifest.toml
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+
+# Generated artwork
+/henon.svg
+/lorenz.svg
+/rossler.svg
+/thomas.svg

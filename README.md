@@ -1,19 +1,70 @@
 # StrangeArt
 
-Generate 2D art from strange attractors with Julia. The first version simulates
-the Hénon map and writes its orbit as a standalone SVG, with no external
-packages required.
+Generate 2D art from strange attractors with Julia. Hénon is simulated as a
+discrete map; continuous systems use the modular `OrdinaryDiffEqVerner` package
+and `SciMLBase` instead of the full `OrdinaryDiffEq` bundle. The orbit is
+written to a standalone SVG.
+
+## Set up
+
+With Julia installed, instantiate the project dependencies from the repository
+root:
+
+```powershell
+julia --project=. -e "using Pkg; Pkg.instantiate()"
+```
 
 ## Generate an image
 
-With Julia installed, run this from the repository root:
+Hénon remains the default:
 
 ```powershell
 julia --project=. bin\strange-art.jl henon.svg
 ```
 
-Open `henon.svg` in a browser or vector graphics editor. The default run
-discards the first 1,000 iterations and plots the next 100,000 points.
+Select a continuous-time system with `--system`:
+
+```powershell
+julia --project=. bin\strange-art.jl lorenz.svg --system lorenz --points 50000 --projection xz
+```
+
+Available systems are `henon`, `lorenz`, `rossler`, and `thomas`. The three ODE
+systems use the adaptive Verner `Vern7` method and default to the x-y
+projection. Open the resulting SVG in a browser or vector graphics editor. The
+default Hénon run discards the first 1,000 iterations and plots the next
+100,000 points.
+Use `--points` to choose the number of plotted points. For ODE systems this
+samples evenly from the end of the transient to the end of the integration;
+for Hénon it sets the number of iterations retained after burn-in. ODE systems
+also accept `--projection xy`, `xz`, or `yz`; Hénon is 2D and only supports `xy`.
+
+For custom ODE systems with two or more state variables, provide an in-place
+right-hand side and parameters:
+
+```julia
+using StrangeArt
+
+custom_system!(du, u, p, t) = (du[1] = p * u[2]; du[2] = -p * u[1])
+points = ode_points(custom_system!, (1.0, 0.0); p=1.0)
+```
+
+`ode_points` returns the selected state variables as a 2D projection. Use
+`duration`, `dt`, and `discard` to control integration and transient removal.
+You can pass a different `solver` algorithm if you add its package to the project.
+
+## Project layout
+
+- `src/StrangeArt.jl` assembles the module and exports its public API.
+- `src/attractors/` contains the individual attractors, shared ODE integration,
+  and system registry.
+- `src/rendering/` contains SVG output code.
+- `bin/` contains the command-line interface, and `test/` contains tests.
+
+To add a built-in system, put its generator in `src/attractors/` and register
+it in `src/attractors/registry.jl`.
+
+The Julia REPL exposes API descriptions through help mode, for example
+`?ode_points` or `?write_svg`.
 
 ## Run tests
 
@@ -21,6 +72,6 @@ discards the first 1,000 iterations and plots the next 100,000 points.
 julia --project=. test\runtests.jl
 ```
 
-The simulation and SVG writer are in `src/StrangeArt.jl`. The next steps can
-build on this small base with adjustable parameters, other attractors, and
-additional rendering options.
+The attractor generators and SVG writer are in `src/StrangeArt.jl`. ODE
+generators accept `duration`, `dt`, and `discard` keywords; system parameters
+and initial states can also be customized through `generate_points`.
