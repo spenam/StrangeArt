@@ -64,18 +64,18 @@ With `--system all`, four files are written using the output path as a prefix
 also works for the 2D Hénon system. GIF dimensions are currently fixed at
 480×360 pixels.
 
-For a reusable batch of parameter-colored SVGs, edit the per-system value
-lists and settings in `scripts/generate-all-attractors.jl`, then run:
+For a reusable batch of parameter-colored PNGs, edit the per-system value lists
+and settings in `scripts/generate-all-attractors.jl`, then run:
 
 ```powershell
 julia --project=. scripts\generate-all-attractors.jl
 ```
 
-The script overlays each system's parameter sweeps in one SVG. Point color
-indicates the parameter value using a perceptually uniform, viridis-like
+The script overlays each system's parameter sweeps in one raster image. Point
+color indicates the parameter value using a perceptually uniform, viridis-like
 palette sampled uniformly along its Oklab color path; a color bar identifies
-the range. It writes one SVG per built-in system to `generated-art/`, which is
-ignored by Git.
+the range. It writes 2400×2400 PNGs with 300 DPI resolution metadata to
+`generated-art/`, which is ignored by Git.
 
 For custom ODE systems with two or more state variables, provide an in-place
 right-hand side and parameters:
@@ -96,7 +96,7 @@ You can pass a different `solver` algorithm if you add its package to the projec
 - `src/StrangeArt.jl` assembles the module and exports its public API.
 - `src/attractors/` contains the individual attractors, shared ODE integration,
   and system registry.
-- `src/rendering/` contains SVG and GIF output code.
+- `src/rendering/` contains SVG, PNG, and GIF output code.
 - `src/animation/` contains parameter-sweep generation for transition GIFs.
 - `bin/` contains the command-line interface, `scripts/` contains reusable
   batch generation, and `test/` contains tests.
