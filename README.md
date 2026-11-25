@@ -43,6 +43,15 @@ ODE systems it sets the number of samples from the end of the transient to the
 end of integration. ODE systems accept `--projection xy`, `xz`, or `yz`; the
 three discrete maps only support `xy`.
 
+## Example artwork
+
+These parameter sweeps show how changing Clifford's and de Jong's `a`
+parameter changes the attractor. Point color encodes the parameter value.
+
+![Clifford attractor parameter sweep](docs/images/clifford.png)
+
+![de Jong attractor parameter sweep](docs/images/dejong.png)
+
 Use a `.gif` output path to create a parameter-sweep animation. The default
 sweep controls include Clifford's `a` (-1.6 to -1.2), de Jong's `a` (-2.6 to
 -1.9), Hénon's `a` (0.8 to 1.4), Lorenz's `rho` (20 to 28), Rössler's `c` (2
