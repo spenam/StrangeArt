@@ -1,4 +1,10 @@
 name = "StrangeArt"
 uuid = "3b8c6f6a-5e1d-4c8a-9b23-a9d513f471c0"
-authors = ["Santiago Pena Martinez"]
 version = "0.1.0"
+authors = ["Santiago Pena Martinez"]
+
+[deps]
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+
+[compat]
+OrdinaryDiffEq = "7.8.1"
