@@ -79,3 +79,109 @@ end
     @test_throws ArgumentError write_svg("unused.svg", [(0im, 0im)])
     @test_throws ArgumentError write_svg("unused.svg", NTuple{2, Float64}[]; width=0)
 end
+
+function gif_frame_count(bytes)
+    @test bytes[1:6] == collect(codeunits("GIF89a"))
+    screen_flags = bytes[11]
+    index = 14
+    if screen_flags & 0x80 != 0
+        index += 3 * (1 << ((screen_flags & 0x07) + 1))
+    end
+
+    frames = 0
+    while index <= length(bytes)
+        marker = bytes[index]
+        index += 1
+        if marker == 0x2c
+            frames += 1
+            index += 9
+            image_flags = bytes[index - 1]
+            if image_flags & 0x80 != 0
+                index += 3 * (1 << ((image_flags & 0x07) + 1))
+            end
+            index += 1
+            while true
+                block_size = bytes[index]
+                index += 1
+                block_size == 0 && break
+                index += block_size
+            end
+        elseif marker == 0x21
+            index += 1
+            while true
+                block_size = bytes[index]
+                index += 1
+                block_size == 0 && break
+                index += block_size
+            end
+        elseif marker == 0x3b
+            break
+        else
+            error("unexpected GIF record marker: $marker")
+        end
+    end
+    return frames
+end
+
+@testset "Transition GIF export" begin
+    mktempdir() do directory
+        henon_path = joinpath(directory, "henon.gif")
+        @test write_transition_gif(
+            henon_path;
+            system=:henon,
+            frames=3,
+            points=100,
+            width=160,
+            height=80,
+        ) == henon_path
+        @test gif_frame_count(read(henon_path)) == 3
+
+        lorenz_path = joinpath(directory, "sweep-lorenz.gif")
+        paths = write_transition_gifs(
+            joinpath(directory, "sweep");
+            systems=(:lorenz,),
+            frames=2,
+            points=20,
+            width=160,
+            height=80,
+        )
+        @test paths == [joinpath(directory, "sweep-lorenz.gif")]
+        @test gif_frame_count(read(lorenz_path)) == 2
+
+        values_path = joinpath(directory, "henon-values.gif")
+        @test write_transition_gif(
+            values_path;
+            system=:henon,
+            parameter_values=[1.0, 1.05, 1.06, 1.1],
+            points=100,
+            width=160,
+            height=80,
+        ) == values_path
+        @test gif_frame_count(read(values_path)) == 4
+    end
+
+    @test_throws ArgumentError write_transition_gif(
+        "unused.gif";
+        system=:henon,
+        frames=1,
+    )
+    @test_throws ArgumentError write_transition_gif(
+        "unused.gif";
+        system=:henon,
+        parameter_values=[1.0],
+    )
+    @test_throws ArgumentError write_transition_gif(
+        "unused.gif";
+        system=:henon,
+        parameter_values=[1.0, 1.1],
+        frames=2,
+    )
+end
+
+@testset "Explicit parameter sampling" begin
+    @test_throws ArgumentError write_transition_gif(
+        "unused.gif";
+        system=:henon,
+        parameter_values=[1.0, Inf],
+    )
+end
