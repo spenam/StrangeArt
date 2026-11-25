@@ -1,6 +1,5 @@
 include(joinpath(@__DIR__, "..", "src", "StrangeArt.jl"))
 using .StrangeArt
-using Zlib_jll: libz
 
 const OUTPUT_DIR = joinpath(@__DIR__, "..", "generated-art")
 const FRAMES_DIR = joinpath(OUTPUT_DIR, "dejong-b-sweep-frames")
@@ -29,13 +28,6 @@ function gif_palette(colors)
     ]
 end
 
-function read_uint32(bytes, index)
-    return (UInt32(bytes[index]) << 24) |
-           (UInt32(bytes[index + 1]) << 16) |
-           (UInt32(bytes[index + 2]) << 8) |
-           UInt32(bytes[index + 3])
-end
-
 function quantize_color(rgb, colors, cache)
     return get!(cache, rgb) do
         if rgb == colors[1]
@@ -59,69 +51,28 @@ function quantize_color(rgb, colors, cache)
     end
 end
 
-function read_png_frame(path, colors, cache)
-    bytes = read(path)
-    bytes[1:8] == UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] ||
-        throw(ArgumentError("invalid PNG signature in $path"))
+function write_png_frame(path, pixels)
+    scanlines = StrangeArt._png_scanlines(pixels)
+    compressed = StrangeArt._zlib_compress(scanlines)
+    pixels_per_meter = round(Int, DPI / 0.0254)
+    StrangeArt._write_png(path, compressed, WIDTH, HEIGHT, pixels_per_meter)
+end
 
-    width = 0
-    height = 0
-    compressed = UInt8[]
-    offset = 9
-    while offset <= length(bytes)
-        chunk_size = Int(read_uint32(bytes, offset))
-        chunk_name = String(bytes[(offset + 4):(offset + 7)])
-        data_start = offset + 8
-        data_end = data_start + chunk_size - 1
-
-        if chunk_name == "IHDR"
-            width = Int(read_uint32(bytes, data_start))
-            height = Int(read_uint32(bytes, data_start + 4))
-            bytes[data_start + 8] == 8 && bytes[data_start + 9] == 2 &&
-                bytes[data_start + 12] == 0 ||
-                throw(ArgumentError("expected a non-interlaced RGB PNG: $path"))
-        elseif chunk_name == "IDAT"
-            append!(compressed, @view bytes[data_start:data_end])
-        elseif chunk_name == "IEND"
-            break
-        end
-
-        offset += chunk_size + 12
-    end
-
-    width > 0 && height > 0 && !isempty(compressed) ||
-        throw(ArgumentError("PNG is missing image data: $path"))
-    expected_size = height * (1 + 3width)
-    raw = Vector{UInt8}(undef, expected_size)
-    raw_size = Ref{Culong}(Culong(expected_size))
-    status = GC.@preserve compressed raw begin
-        ccall(
-            (:uncompress, libz),
-            Cint,
-            (Ptr{UInt8}, Ref{Culong}, Ptr{UInt8}, Culong),
-            pointer(raw),
-            raw_size,
-            pointer(compressed),
-            Culong(length(compressed)),
-        )
-    end
-    status == 0 || throw(ErrorException("failed to decompress PNG frame $path"))
-    raw_size[] == expected_size ||
-        throw(ArgumentError("unexpected decompressed PNG size in $path"))
-
+function indexed_frame(pixels, colors, cache)
+    height, width, _ = size(pixels)
     indexed = Matrix{UInt8}(undef, height, width)
-    for y in 1:height
-        row_start = (y - 1) * (1 + 3width) + 1
-        raw[row_start] == 0 || throw(ArgumentError("unsupported PNG row filter in $path"))
-        for x in 1:width
-            pixel_start = row_start + 1 + 3(x - 1)
-            rgb = (raw[pixel_start], raw[pixel_start + 1], raw[pixel_start + 2])
-            indexed[y, x] = quantize_color(rgb, colors, cache)
-        end
+    for y in 1:height, x in 1:width
+        rgb = (pixels[y, x, 1], pixels[y, x, 2], pixels[y, x, 3])
+        indexed[y, x] = quantize_color(rgb, colors, cache)
     end
     return indexed
 end
 
+"""
+    generate_dejong_b_sweep()
+
+Render the color-coded `a` sweep at each `b` value and assemble a GIF.
+"""
 function generate_dejong_b_sweep()
     mkpath(FRAMES_DIR)
     colors = palette_colors()
@@ -138,18 +89,17 @@ function generate_dejong_b_sweep()
             append!(color_values, fill(a, length(orbit)))
         end
 
-        png_path = joinpath(FRAMES_DIR, "frame-$(lpad(frame_index, 3, '0')).png")
-        write_sweep_png(
-            png_path,
-            points;
+        pixels = StrangeArt._sweep_png_pixels(
+            points,
             color_values,
-            colorbar_label="a",
-            width=WIDTH,
-            height=HEIGHT,
-            dpi=DPI,
+            WIDTH,
+            HEIGHT,
+            "a";
             bounds=BOUNDS,
         )
-        indexed = read_png_frame(png_path, colors, quantized_colors)
+        png_path = joinpath(FRAMES_DIR, "frame-$(lpad(frame_index, 3, '0')).png")
+        write_png_frame(png_path, pixels)
+        indexed = indexed_frame(pixels, colors, quantized_colors)
         StrangeArt._draw_gif_text!(indexed, "b=$(round(b; sigdigits=3))")
         frames[:, :, frame_index] = indexed
         println("Rendered frame $frame_index/$(length(B_VALUES))")
