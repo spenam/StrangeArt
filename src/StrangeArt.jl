@@ -1,7 +1,7 @@
 """
     StrangeArt
 
-Generate 2D point clouds from strange attractors and export them as SVG images.
+Generate strange-attractor point clouds and export SVG, PNG, and GIF images.
 """
 module StrangeArt
 
