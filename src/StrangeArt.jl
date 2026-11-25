@@ -1,6 +1,10 @@
 module StrangeArt
 
-export henon_points, write_svg
+using OrdinaryDiffEqVerner: Vern7
+using SciMLBase: ODEProblem, solve
+
+export available_systems, generate_points, henon_points, lorenz_points, ode_points,
+       rossler_points, thomas_points, write_svg
 
 function henon_points(;
     a::Real=1.4,
@@ -27,6 +31,111 @@ function henon_points(;
     end
 
     return points
+end
+
+function ode_points(
+    rhs!,
+    initial_state;
+    solver=Vern7(),
+    p=nothing,
+    duration=100.0,
+    dt=0.01,
+    discard=20.0,
+)
+    ((initial_state isa Tuple || initial_state isa AbstractVector) &&
+     length(initial_state) >= 2) ||
+        throw(ArgumentError("initial_state must contain at least two finite real values"))
+    all(value -> value isa Real && isfinite(value), initial_state) ||
+        throw(ArgumentError("initial_state must contain at least two finite real values"))
+    all(value -> value isa Real && isfinite(value), (duration, dt, discard)) ||
+        throw(ArgumentError("duration, dt, and discard must be finite real values"))
+    duration > 0 || throw(ArgumentError("duration must be positive"))
+    dt > 0 || throw(ArgumentError("dt must be positive"))
+    0 <= discard < duration ||
+        throw(ArgumentError("discard must be non-negative and less than duration"))
+
+    duration, dt, discard = Float64(duration), Float64(dt), Float64(discard)
+    initial = Float64[value for value in initial_state]
+    all(isfinite, (duration, dt, discard, initial...)) ||
+        throw(ArgumentError("solver inputs must be representable as finite Float64 values"))
+
+    problem = ODEProblem(rhs!, initial, (0.0, duration), p)
+    solution = solve(problem, solver; saveat=dt, reltol=1e-8, abstol=1e-10)
+
+    return NTuple{2, Float64}[
+        (state[1], state[2])
+        for (time, state) in zip(solution.t, solution.u)
+        if time >= discard
+    ]
+end
+
+function lorenz_points(;
+    sigma::Real=10.0,
+    rho::Real=28.0,
+    beta::Real=8 / 3,
+    initial_state=(1.0, 0.0, 0.0),
+    solver=Vern7(),
+    duration::Real=100.0,
+    dt::Real=0.01,
+    discard::Real=20.0,
+)
+    all(isfinite, (sigma, rho, beta)) ||
+        throw(ArgumentError("Lorenz parameters must be finite"))
+    rhs! = function (du, u, _, _)
+        du[1] = sigma * (u[2] - u[1])
+        du[2] = u[1] * (rho - u[3]) - u[2]
+        du[3] = u[1] * u[2] - beta * u[3]
+    end
+    return ode_points(rhs!, initial_state; solver, duration, dt, discard)
+end
+
+function rossler_points(;
+    a::Real=0.2,
+    b::Real=0.2,
+    c::Real=5.7,
+    initial_state=(1.0, 0.0, 0.0),
+    solver=Vern7(),
+    duration::Real=200.0,
+    dt::Real=0.01,
+    discard::Real=50.0,
+)
+    all(isfinite, (a, b, c)) || throw(ArgumentError("Rössler parameters must be finite"))
+    rhs! = function (du, u, _, _)
+        du[1] = -u[2] - u[3]
+        du[2] = u[1] + a * u[2]
+        du[3] = b + u[3] * (u[1] - c)
+    end
+    return ode_points(rhs!, initial_state; solver, duration, dt, discard)
+end
+
+function thomas_points(;
+    b::Real=0.208186,
+    initial_state=(0.1, 0.0, 0.0),
+    solver=Vern7(),
+    duration::Real=100.0,
+    dt::Real=0.01,
+    discard::Real=20.0,
+)
+    isfinite(b) || throw(ArgumentError("Thomas parameter must be finite"))
+    rhs! = function (du, u, _, _)
+        du[1] = sin(u[2]) - b * u[1]
+        du[2] = sin(u[3]) - b * u[2]
+        du[3] = sin(u[1]) - b * u[3]
+    end
+    return ode_points(rhs!, initial_state; solver, duration, dt, discard)
+end
+
+available_systems() = (:henon, :lorenz, :rossler, :thomas)
+
+function generate_points(system::Union{Symbol, AbstractString}; kwargs...)
+    selected = Symbol(lowercase(string(system)))
+    selected === :henon && return henon_points(; kwargs...)
+    selected === :lorenz && return lorenz_points(; kwargs...)
+    selected === :rossler && return rossler_points(; kwargs...)
+    selected === :thomas && return thomas_points(; kwargs...)
+
+    options = join(string.(available_systems()), ", ")
+    throw(ArgumentError("unknown attractor '$system'; choose one of: $options"))
 end
 
 function write_svg(path::AbstractString, points::AbstractVector{<:Tuple};
