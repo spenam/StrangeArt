@@ -4,7 +4,9 @@ version = "0.1.0"
 authors = ["Santiago Pena Martinez"]
 
 [deps]
-OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+OrdinaryDiffEqVerner = "79d7bb75-1356-48c1-b8c0-6832512096c2"
+SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [compat]
-OrdinaryDiffEq = "7.8.1"
+OrdinaryDiffEqVerner = "2.4.2"
+SciMLBase = "3.58.0"
