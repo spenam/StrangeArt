@@ -7,8 +7,10 @@ authors = ["Santiago Pena Martinez"]
 Giflib_jll = "59f7168a-df46-5410-90c8-f2779963d0ec"
 OrdinaryDiffEqVerner = "79d7bb75-1356-48c1-b8c0-6832512096c2"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
+Zlib_jll = "83775a58-1f1d-513f-b197-d71354ab007a"
 
 [compat]
 Giflib_jll = "6.1.3"
 OrdinaryDiffEqVerner = "2.4.2"
 SciMLBase = "3.58.0"
+Zlib_jll = "1.3.2"
