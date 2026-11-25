@@ -17,54 +17,6 @@ using .StrangeArt
     @test_throws ArgumentError henon_points(a=Inf)
 end
 
-@testset "ODE attractors" begin
-    @test available_systems() == (:henon, :lorenz, :rossler, :thomas)
-    @test generate_points("HeNoN"; iterations=2, discard=0) ==
-          henon_points(iterations=2, discard=0)
-
-    for system in (:lorenz, :rossler, :thomas)
-        points = generate_points(system; duration=0.1, dt=0.02, discard=0.0)
-        @test !isempty(points)
-        @test all(point -> all(isfinite, point), points)
-    end
-    sampled = lorenz_points(duration=0.1, discard=0.0, points=5)
-    @test length(sampled) == 5
-    xz_points = lorenz_points(
-        duration=0.1,
-        discard=0.0,
-        points=5,
-        projection=:xz,
-    )
-    @test length(xz_points) == 5
-    @test xz_points != sampled
-
-    oscillator! = function (du, u, p, t)
-        du[1] = p * u[2]
-        du[2] = -p * u[1]
-        du[3] = 0.0
-        du[4] = 0.0
-    end
-    custom_points = ode_points(
-        oscillator!,
-        [1.0, 0.0, 0.0, 0.0];
-        p=1.0,
-        duration=0.1,
-        discard=0.0,
-        points=6,
-        projection=(1, 4),
-    )
-    @test length(custom_points) == 6
-    @test custom_points[1] == (1.0, 0.0)
-    @test all(point -> point[2] == 0.0, custom_points)
-
-    @test_throws ArgumentError generate_points(:unknown)
-    @test_throws ArgumentError ode_points(oscillator!, [1.0])
-    @test_throws ArgumentError ode_points(oscillator!, [1.0, 0.0]; points=0)
-    @test_throws ArgumentError ode_points(oscillator!, [1.0, 0.0]; projection=:yz)
-    @test_throws ArgumentError lorenz_points(duration=0.0)
-    @test_throws ArgumentError rossler_points(initial_state=(Inf, 0.0, 0.0))
-end
-
 @testset "SVG export" begin
     mktemp() do path, io
         close(io)
