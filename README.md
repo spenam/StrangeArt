@@ -3,7 +3,9 @@
 Generate 2D art from strange attractors with Julia. Hénon is simulated as a
 discrete map; continuous systems use the modular `OrdinaryDiffEqVerner` package
 and `SciMLBase` instead of the full `OrdinaryDiffEq` bundle. The orbit is
-written to a standalone SVG.
+written to a standalone SVG. Parameter-sweep animations are available as GIFs
+without a high-level image-processing dependency; giflib is supplied by the
+small `Giflib_jll` package.
 
 ## Set up
 
@@ -38,6 +40,30 @@ samples evenly from the end of the transient to the end of the integration;
 for Hénon it sets the number of iterations retained after burn-in. ODE systems
 also accept `--projection xy`, `xz`, or `yz`; Hénon is 2D and only supports `xy`.
 
+Use a `.gif` output path to create a parameter-sweep animation. The default
+sweep controls are Hénon's `a` (0.8 to 1.4), Lorenz's `rho` (20 to 28),
+Rössler's `c` (2 to 6), and Thomas's `b` (0.32 down to 0.18):
+
+```powershell
+julia --project=. bin\strange-art.jl lorenz-transition.gif --system lorenz --values "20,24,24.7,24.74,24.8,28" --points 10000
+julia --project=. bin\strange-art.jl transitions.gif --system all --frames 24
+```
+
+By default, the selected system's control parameter is sampled evenly across
+its default range. Use `--values` with a comma-separated list to choose the
+exact values (and thus the number of frames), which lets you concentrate
+samples wherever the behavior changes quickly. For example, the Lorenz
+sequence above adds several values near `rho=24.74`. `--values` cannot be
+combined with `--frames`, `--start`, or `--stop`, and applies to one system at
+a time. Otherwise, `--frames` chooses the sample count and `--start`/`--stop`
+override the range. `--delay` sets the frame delay in centiseconds, and
+`--projection` selects the ODE projection. `--points` sets the number of orbit
+samples in each frame.
+With `--system all`, four files are written using the output path as a prefix
+(for example, `transitions-lorenz.gif`); use the default `xy` projection so it
+also works for the 2D Hénon system. GIF dimensions are currently fixed at
+480×360 pixels.
+
 For custom ODE systems with two or more state variables, provide an in-place
 right-hand side and parameters:
 
@@ -57,14 +83,15 @@ You can pass a different `solver` algorithm if you add its package to the projec
 - `src/StrangeArt.jl` assembles the module and exports its public API.
 - `src/attractors/` contains the individual attractors, shared ODE integration,
   and system registry.
-- `src/rendering/` contains SVG output code.
+- `src/rendering/` contains SVG and GIF output code.
+- `src/animation/` contains parameter-sweep generation for transition GIFs.
 - `bin/` contains the command-line interface, and `test/` contains tests.
 
 To add a built-in system, put its generator in `src/attractors/` and register
 it in `src/attractors/registry.jl`.
 
 The Julia REPL exposes API descriptions through help mode, for example
-`?ode_points` or `?write_svg`.
+`?ode_points`, `?write_svg`, or `?write_transition_gif`.
 
 ## Run tests
 
@@ -72,6 +99,6 @@ The Julia REPL exposes API descriptions through help mode, for example
 julia --project=. test\runtests.jl
 ```
 
-The attractor generators and SVG writer are in `src/StrangeArt.jl`. ODE
-generators accept `duration`, `dt`, and `discard` keywords; system parameters
-and initial states can also be customized through `generate_points`.
+The attractor generators and renderers are assembled in `src/StrangeArt.jl`.
+ODE generators accept `duration`, `dt`, and `discard` keywords; system
+parameters and initial states can also be customized through `generate_points`.
