@@ -72,6 +72,10 @@ function ode_points(
     initial = Float64[value for value in initial_state]
     all(isfinite, (duration, dt, discard, initial...)) ||
         throw(ArgumentError("solver inputs must be representable as finite Float64 values"))
+    duration > 0 && dt > 0 ||
+        throw(ArgumentError("duration and dt must remain positive when represented as Float64"))
+    0 <= discard < duration ||
+        throw(ArgumentError("discard must remain less than duration when represented as Float64"))
     projection_indices = _projection_indices(projection, length(initial))
 
     problem = ODEProblem(rhs!, initial, (0.0, duration), p)
