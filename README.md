@@ -1,9 +1,9 @@
 # StrangeArt
 
-Generate 2D art from strange attractors with Julia. Hénon is simulated as a
-discrete map; continuous systems use the modular `OrdinaryDiffEqVerner` package
-and `SciMLBase` instead of the full `OrdinaryDiffEq` bundle. The orbit is
-written to a standalone SVG. Parameter-sweep animations are available as GIFs
+Generate 2D art from strange attractors with Julia. Hénon, Clifford, and de
+Jong are discrete maps; continuous systems use the modular
+`OrdinaryDiffEqVerner` package and `SciMLBase` instead of the full
+`OrdinaryDiffEq` bundle. Parameter-sweep animations are available as GIFs
 without a high-level image-processing dependency; giflib is supplied by the
 small `Giflib_jll` package.
 
@@ -28,21 +28,25 @@ Select a continuous-time system with `--system`:
 
 ```powershell
 julia --project=. bin\strange-art.jl lorenz.svg --system lorenz --points 50000 --projection xz
+julia --project=. bin\strange-art.jl clifford.svg --system clifford --points 50000
 ```
 
-Available systems are `henon`, `lorenz`, `rossler`, and `thomas`. The three ODE
-systems use the adaptive Verner `Vern7` method and default to the x-y
-projection. Open the resulting SVG in a browser or vector graphics editor. The
-default Hénon run discards the first 1,000 iterations and plots the next
-100,000 points.
-Use `--points` to choose the number of plotted points. For ODE systems this
-samples evenly from the end of the transient to the end of the integration;
-for Hénon it sets the number of iterations retained after burn-in. ODE systems
-also accept `--projection xy`, `xz`, or `yz`; Hénon is 2D and only supports `xy`.
+Available systems are `clifford`, `dejong`, `henon`, `lorenz`, `rossler`, and
+`thomas`. Clifford and de Jong use the 2D maps
+`x' = sin(a*y) + c*cos(a*x), y' = sin(b*x) + d*cos(b*y)` and
+`x' = sin(a*y) - cos(b*x), y' = sin(c*x) - cos(d*y)`, respectively. The three
+ODE systems use the adaptive Verner `Vern7` method and default to the x-y
+projection. Open the resulting SVG in a browser or vector graphics editor.
+Discrete maps default to discarding the first 1,000 iterations and plotting
+the next 100,000 points. `--points` sets this retained iteration count; for
+ODE systems it sets the number of samples from the end of the transient to the
+end of integration. ODE systems accept `--projection xy`, `xz`, or `yz`; the
+three discrete maps only support `xy`.
 
 Use a `.gif` output path to create a parameter-sweep animation. The default
-sweep controls are Hénon's `a` (0.8 to 1.4), Lorenz's `rho` (20 to 28),
-Rössler's `c` (2 to 6), and Thomas's `b` (0.32 down to 0.18):
+sweep controls include Clifford's `a` (-1.6 to -1.2), de Jong's `a` (-2.6 to
+-1.9), Hénon's `a` (0.8 to 1.4), Lorenz's `rho` (20 to 28), Rössler's `c` (2
+to 6), and Thomas's `b` (0.32 down to 0.18):
 
 ```powershell
 julia --project=. bin\strange-art.jl lorenz-transition.gif --system lorenz --values "20,24,24.7,24.74,24.8,28" --points 10000
@@ -59,10 +63,10 @@ a time. Otherwise, `--frames` chooses the sample count and `--start`/`--stop`
 override the range. `--delay` sets the frame delay in centiseconds, and
 `--projection` selects the ODE projection. `--points` sets the number of orbit
 samples in each frame.
-With `--system all`, four files are written using the output path as a prefix
+With `--system all`, six files are written using the output path as a prefix
 (for example, `transitions-lorenz.gif`); use the default `xy` projection so it
-also works for the 2D Hénon system. GIF dimensions are currently fixed at
-480×360 pixels.
+also works for the three 2D discrete maps. GIF dimensions are currently fixed
+at 480×360 pixels.
 
 For a reusable batch of parameter-colored PNGs, edit the per-system value lists
 and settings in `scripts/generate-all-attractors.jl`, then run:

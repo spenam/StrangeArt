@@ -71,7 +71,7 @@ function parse_arguments(args)
 
     selected = Symbol(lowercase(system))
     selected in (:all, available_systems()...) ||
-        error("--system must be henon, lorenz, rossler, thomas, or all")
+        error("--system must be one of $(join(available_systems(), ", ")) or all")
     if parameter_values !== nothing
         selected !== :all || error("--values can only be used with one selected system")
         (frames === nothing && start === nothing && stop === nothing) ||
@@ -96,7 +96,7 @@ options = parse_arguments(ARGS)
 if endswith(lowercase(options.output), ".gif")
     if options.system === :all
         options.projection === :xy ||
-            error("--system all requires --projection xy because Hénon is 2D")
+            error("--system all requires --projection xy because three attractors are 2D")
         paths = write_transition_gifs(
             options.output;
             systems=available_systems(),
@@ -109,9 +109,9 @@ if endswith(lowercase(options.output), ".gif")
         )
         println("Wrote transition GIFs: $(join(paths, ", "))")
     else
-        if options.system === :henon
+        if options.system in (:clifford, :dejong, :henon)
             options.projection === :xy ||
-                error("Hénon is 2D; --projection is available for ODE systems")
+                error("$(options.system) is 2D; --projection is available for ODE systems")
         end
         write_transition_gif(
             options.output;
@@ -132,9 +132,9 @@ else
      options.stop === nothing && options.parameter_values === nothing &&
      options.frame_delay == 8) ||
         error("--frames, --start, --stop, --values, and --delay require a .gif output path")
-    if options.system === :henon
+    if options.system in (:clifford, :dejong, :henon)
         options.projection === :xy ||
-            error("Hénon is 2D; --projection is available for ODE systems")
+            error("$(options.system) is 2D; --projection is available for ODE systems")
         points = options.points === nothing ?
                  generate_points(options.system) :
                  generate_points(options.system; iterations=options.points)
