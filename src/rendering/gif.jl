@@ -143,19 +143,25 @@ function _write_gif_extension(gif, code, blocks)
 end
 
 """
-    _encode_gif(path, frames; frame_delay=8)
+    _encode_gif(path, frames; frame_delay=8, palette=_gif_palette())
 
-Encode indexed animation frames as a looping GIF with a shared palette.
+Encode indexed animation frames as a looping GIF with a shared 256-color palette.
 """
-function _encode_gif(path, frames; frame_delay=8)
+function _encode_gif(
+    path,
+    frames;
+    frame_delay=8,
+    palette::Vector{_GifColor}=_gif_palette(),
+)
     height, width, frame_count = size(frames)
     frame_count > 0 || throw(ArgumentError("GIF must contain at least one frame"))
     1 <= width <= typemax(UInt16) || throw(ArgumentError("GIF width is out of range"))
     1 <= height <= typemax(UInt16) || throw(ArgumentError("GIF height is out of range"))
     1 <= frame_delay <= typemax(UInt16) ||
         throw(ArgumentError("frame delay must be between 1 and 65535 centiseconds"))
+    length(palette) == 256 ||
+        throw(ArgumentError("GIF palette must contain exactly 256 colors"))
 
-    palette = _gif_palette()
     color_map = GC.@preserve palette begin
         ccall(
             (:GifMakeMapObject, libgif),

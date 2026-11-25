@@ -1,10 +1,12 @@
 """
     write_sweep_png(path, points; color_values, colorbar_label="parameter",
-                    width=2400, height=2400, dpi=300)
+                    width=2400, height=2400, dpi=300, bounds=nothing)
 
 Rasterize a parameter-colored point cloud into an RGB PNG. The labeled scale
 uses the same perceptually uniform palette as the SVG renderer. `dpi` is
 written into the PNG physical-resolution metadata.
+`bounds`, when supplied as `(x_min, x_max, y_min, y_max)`, keeps the plot
+scale fixed across related images.
 """
 function write_sweep_png(
     path::AbstractString,
@@ -14,6 +16,7 @@ function write_sweep_png(
     width::Integer=2400,
     height::Integer=2400,
     dpi::Real=300,
+    bounds=nothing,
 )
     endswith(lowercase(path), ".png") ||
         throw(ArgumentError("PNG output path must end in .png"))
@@ -31,7 +34,14 @@ function write_sweep_png(
     1 <= pixels_per_meter <= typemax(UInt32) ||
         throw(ArgumentError("dpi is outside the PNG resolution range"))
 
-    pixels = _sweep_png_pixels(points, color_values, width, height, colorbar_label)
+    pixels = _sweep_png_pixels(
+        points,
+        color_values,
+        width,
+        height,
+        colorbar_label;
+        bounds,
+    )
     scanlines = _png_scanlines(pixels)
     compressed_scanlines = _zlib_compress(scanlines)
     _write_png(path, compressed_scanlines, width, height, pixels_per_meter)
@@ -65,11 +75,23 @@ function _hex_rgb(color)
     return ntuple(channel -> parse(UInt8, color[(2 + 2(channel - 1)):(3 + 2(channel - 1))]; base=16), 3)
 end
 
-function _sweep_png_pixels(points, color_values, width, height, colorbar_label)
-    x_min = minimum(point[1] for point in points)
-    x_max = maximum(point[1] for point in points)
-    y_min = minimum(point[2] for point in points)
-    y_max = maximum(point[2] for point in points)
+function _sweep_png_pixels(points, color_values, width, height, colorbar_label; bounds=nothing)
+    if bounds === nothing
+        x_min = minimum(point[1] for point in points)
+        x_max = maximum(point[1] for point in points)
+        y_min = minimum(point[2] for point in points)
+        y_max = maximum(point[2] for point in points)
+    else
+        bounds isa Tuple && length(bounds) == 4 ||
+            throw(ArgumentError("bounds must be (x_min, x_max, y_min, y_max)"))
+        all(value -> value isa Real && isfinite(value), bounds) ||
+            throw(ArgumentError("bounds must contain finite values"))
+        x_min, x_max, y_min, y_max = Float64.(bounds)
+        all(isfinite, (x_min, x_max, y_min, y_max)) ||
+            throw(ArgumentError("bounds must be representable as finite Float64 values"))
+        x_min < x_max && y_min < y_max ||
+            throw(ArgumentError("bounds must have increasing minimum and maximum values"))
+    end
     x_span, y_span = max(x_max - x_min, eps()), max(y_max - y_min, eps())
 
     margin = max(12, round(Int, min(width, height) * 0.04))
