@@ -1,6 +1,12 @@
 include(joinpath(@__DIR__, "..", "src", "StrangeArt.jl"))
 using .StrangeArt
 
+"""
+    parse_arguments(args)
+
+Parse the optional output path and `--system name` CLI argument. Returns the
+selected system symbol and output path; the path defaults to `<system>.svg`.
+"""
 function parse_arguments(args)
     output = nothing
     system = "henon"

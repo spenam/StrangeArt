@@ -47,6 +47,20 @@ points = ode_points(custom_system!, (1.0, 0.0); p=1.0)
 `dt`, and `discard` to control integration and transient removal. You can pass
 a different `solver` algorithm if you add its package to the project.
 
+## Project layout
+
+- `src/StrangeArt.jl` assembles the module and exports its public API.
+- `src/attractors/` contains the individual attractors, shared ODE integration,
+  and system registry.
+- `src/rendering/` contains SVG output code.
+- `bin/` contains the command-line interface, and `test/` contains tests.
+
+To add a built-in system, put its generator in `src/attractors/` and register
+it in `src/attractors/registry.jl`.
+
+The Julia REPL exposes API descriptions through help mode, for example
+`?ode_points` or `?write_svg`.
+
 ## Run tests
 
 ```powershell
