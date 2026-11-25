@@ -5,7 +5,5 @@
 *.jl.mem
 
 # Generated artwork
-/henon.svg
-/lorenz.svg
-/rossler.svg
-/thomas.svg
+/*.svg
+/*.gif
