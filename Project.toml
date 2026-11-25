@@ -4,9 +4,11 @@ version = "0.1.0"
 authors = ["Santiago Pena Martinez"]
 
 [deps]
+Giflib_jll = "59f7168a-df46-5410-90c8-f2779963d0ec"
 OrdinaryDiffEqVerner = "79d7bb75-1356-48c1-b8c0-6832512096c2"
 SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 
 [compat]
+Giflib_jll = "6.1.3"
 OrdinaryDiffEqVerner = "2.4.2"
 SciMLBase = "3.58.0"
