@@ -90,6 +90,12 @@ palette sampled uniformly along its Oklab color path; a color bar identifies
 the range. It writes 2400×2400 PNGs with 300 DPI resolution metadata to
 `generated-art/`, which is ignored by Git.
 
+To make a color-coded de Jong animation, run
+`julia --project=. scripts\generate-dejong-b-sweep.jl`. Each 800×600 PNG
+frame sweeps `a` from -2.6 to -1.9 (color-coded as in the examples) while
+advancing `b` from -2.5 to 2.5 across 60 frames. PNG frames with 300-DPI
+metadata and the resulting GIF are written under the ignored `generated-art/`.
+
 For custom ODE systems with two or more state variables, provide an in-place
 right-hand side and parameters:
 
