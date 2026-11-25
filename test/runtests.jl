@@ -101,6 +101,69 @@ end
     )
 end
 
+function read_png_uint32(bytes, offset)
+    return (UInt32(bytes[offset]) << 24) |
+           (UInt32(bytes[offset + 1]) << 16) |
+           (UInt32(bytes[offset + 2]) << 8) |
+           UInt32(bytes[offset + 3])
+end
+
+function read_png_chunks(bytes)
+    chunks = Dict{String, Vector{UInt8}}()
+    index = 9
+    while index <= length(bytes)
+        chunk_length = Int(read_png_uint32(bytes, index))
+        chunk_name = String(bytes[(index + 4):(index + 7)])
+        data_start = index + 8
+        data_end = data_start + chunk_length - 1
+        data = bytes[data_start:data_end]
+        stored_crc = read_png_uint32(bytes, data_end + 1)
+        chunk_type = collect(codeunits(chunk_name))
+        @test stored_crc == StrangeArt._png_crc32(vcat(chunk_type, data))
+        chunks[chunk_name] = data
+        index = data_end + 5
+        chunk_name == "IEND" && break
+    end
+    return chunks
+end
+
+@testset "PNG parameter-sweep export" begin
+    mktempdir() do directory
+        path = joinpath(directory, "sweep.png")
+        @test write_sweep_png(
+            path,
+            [(0.0, 0.0), (1.0, 1.0)];
+            color_values=[0.0, 1.0],
+            colorbar_label="a",
+            width=320,
+            height=240,
+            dpi=300,
+        ) == path
+
+        bytes = read(path)
+        @test bytes[1:8] == UInt8[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+        chunks = read_png_chunks(bytes)
+        @test read_png_uint32(chunks["IHDR"], 1) == 320
+        @test read_png_uint32(chunks["IHDR"], 5) == 240
+        @test chunks["IHDR"][10] == 2
+        @test read_png_uint32(chunks["pHYs"], 1) == round(UInt32, 300 / 0.0254)
+        @test chunks["pHYs"][9] == 1
+        @test !isempty(chunks["IDAT"])
+    end
+
+    @test_throws ArgumentError write_sweep_png(
+        "unused.png",
+        [(0.0, 0.0), (1.0, 1.0)];
+        color_values=[1.0],
+    )
+    @test_throws ArgumentError write_sweep_png(
+        "unused.png",
+        [(0.0, 0.0)];
+        color_values=[1.0],
+        dpi=0,
+    )
+end
+
 function gif_frame_count(bytes)
     @test bytes[1:6] == collect(codeunits("GIF89a"))
     screen_flags = bytes[11]
