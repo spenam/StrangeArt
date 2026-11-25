@@ -3,7 +3,7 @@
 
 Return the tuple of built-in attractor names accepted by [`generate_points`](@ref).
 """
-available_systems() = (:henon, :lorenz, :rossler, :thomas)
+available_systems() = (:clifford, :dejong, :henon, :lorenz, :rossler, :thomas)
 
 """
     generate_points(system; kwargs...)
@@ -14,6 +14,8 @@ Throws `ArgumentError` when `system` is not available.
 """
 function generate_points(system::Union{Symbol, AbstractString}; kwargs...)
     selected = Symbol(lowercase(string(system)))
+    selected === :clifford && return clifford_points(; kwargs...)
+    selected === :dejong && return dejong_points(; kwargs...)
     selected === :henon && return henon_points(; kwargs...)
     selected === :lorenz && return lorenz_points(; kwargs...)
     selected === :rossler && return rossler_points(; kwargs...)
