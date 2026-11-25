@@ -25,13 +25,18 @@ julia --project=. bin\strange-art.jl henon.svg
 Select a continuous-time system with `--system`:
 
 ```powershell
-julia --project=. bin\strange-art.jl lorenz.svg --system lorenz
+julia --project=. bin\strange-art.jl lorenz.svg --system lorenz --points 50000 --projection xz
 ```
 
 Available systems are `henon`, `lorenz`, `rossler`, and `thomas`. The three ODE
-systems use the adaptive Verner `Vern7` method and render the x-y projection.
-Open the resulting SVG in a browser or vector graphics editor. The default
-Hénon run discards the first 1,000 iterations and plots the next 100,000 points.
+systems use the adaptive Verner `Vern7` method and default to the x-y
+projection. Open the resulting SVG in a browser or vector graphics editor. The
+default Hénon run discards the first 1,000 iterations and plots the next
+100,000 points.
+Use `--points` to choose the number of plotted points. For ODE systems this
+samples evenly from the end of the transient to the end of the integration;
+for Hénon it sets the number of iterations retained after burn-in. ODE systems
+also accept `--projection xy`, `xz`, or `yz`; Hénon is 2D and only supports `xy`.
 
 For custom ODE systems with two or more state variables, provide an in-place
 right-hand side and parameters:
@@ -43,9 +48,9 @@ custom_system!(du, u, p, t) = (du[1] = p * u[2]; du[2] = -p * u[1])
 points = ode_points(custom_system!, (1.0, 0.0); p=1.0)
 ```
 
-`ode_points` returns the first two state variables as x-y; use `duration`,
-`dt`, and `discard` to control integration and transient removal. You can pass
-a different `solver` algorithm if you add its package to the project.
+`ode_points` returns the selected state variables as a 2D projection. Use
+`duration`, `dt`, and `discard` to control integration and transient removal.
+You can pass a different `solver` algorithm if you add its package to the project.
 
 ## Project layout
 
