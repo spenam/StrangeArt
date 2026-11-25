@@ -27,6 +27,16 @@ end
         @test !isempty(points)
         @test all(point -> all(isfinite, point), points)
     end
+    sampled = lorenz_points(duration=0.1, discard=0.0, points=5)
+    @test length(sampled) == 5
+    xz_points = lorenz_points(
+        duration=0.1,
+        discard=0.0,
+        points=5,
+        projection=:xz,
+    )
+    @test length(xz_points) == 5
+    @test xz_points != sampled
 
     oscillator! = function (du, u, p, t)
         du[1] = p * u[2]
@@ -39,14 +49,18 @@ end
         [1.0, 0.0, 0.0, 0.0];
         p=1.0,
         duration=0.1,
-        dt=0.02,
         discard=0.0,
+        points=6,
+        projection=(1, 4),
     )
-    @test !isempty(custom_points)
+    @test length(custom_points) == 6
     @test custom_points[1] == (1.0, 0.0)
+    @test all(point -> point[2] == 0.0, custom_points)
 
     @test_throws ArgumentError generate_points(:unknown)
     @test_throws ArgumentError ode_points(oscillator!, [1.0])
+    @test_throws ArgumentError ode_points(oscillator!, [1.0, 0.0]; points=0)
+    @test_throws ArgumentError ode_points(oscillator!, [1.0, 0.0]; projection=:yz)
     @test_throws ArgumentError lorenz_points(duration=0.0)
     @test_throws ArgumentError rossler_points(initial_state=(Inf, 0.0, 0.0))
 end
