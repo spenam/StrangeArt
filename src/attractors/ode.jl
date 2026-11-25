@@ -1,3 +1,15 @@
+"""
+    ode_points(rhs!, initial_state; solver=Vern7(), p=nothing,
+               duration=100.0, dt=0.01, discard=20.0)
+
+Integrate an in-place ODE `rhs!(du, u, p, t)` and return its first two state
+variables as 2D points. `initial_state` must contain at least two finite real
+values. `dt` controls saved-output spacing; the solver may use adaptive
+internal steps. `discard` is the transient time omitted from the output.
+
+Pass ODE parameters with `p`, choose a compatible algorithm with `solver`, and
+set the integration end time with `duration`.
+"""
 function ode_points(
     rhs!,
     initial_state;

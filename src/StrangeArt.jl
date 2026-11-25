@@ -1,3 +1,8 @@
+"""
+    StrangeArt
+
+Generate 2D point clouds from strange attractors and export them as SVG images.
+"""
 module StrangeArt
 
 using OrdinaryDiffEqVerner: Vern7

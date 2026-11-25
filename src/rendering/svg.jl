@@ -1,3 +1,10 @@
+"""
+    write_svg(path, points; width=1000, height=1000)
+
+Write finite 2D points to an SVG file, scaling them to fit while preserving
+their aspect ratio. `width` and `height` set the output dimensions in pixels.
+Returns `path`.
+"""
 function write_svg(path::AbstractString, points::AbstractVector{<:Tuple};
                    width::Integer=1000, height::Integer=1000)
     width > 0 || throw(ArgumentError("width must be positive"))

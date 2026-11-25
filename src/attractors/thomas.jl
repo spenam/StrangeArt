@@ -1,3 +1,11 @@
+"""
+    thomas_points(; b=0.208186, initial_state=(0.1, 0, 0),
+                  solver=Vern7(), duration=100.0, dt=0.01, discard=20.0)
+
+Integrate the Thomas cyclically symmetric system and return its x-y
+projection. Integration and solver keywords are forwarded to
+[`ode_points`](@ref).
+"""
 function thomas_points(;
     b::Real=0.208186,
     initial_state=(0.1, 0.0, 0.0),

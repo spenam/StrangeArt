@@ -1,3 +1,12 @@
+"""
+    lorenz_points(; sigma=10.0, rho=28.0, beta=8/3,
+                  initial_state=(1, 0, 0), solver=Vern7(),
+                  duration=100.0, dt=0.01, discard=20.0)
+
+Integrate the Lorenz system and return its x-y projection. The three
+parameters control the Lorenz equations; integration and solver keywords are
+forwarded to [`ode_points`](@ref).
+"""
 function lorenz_points(;
     sigma::Real=10.0,
     rho::Real=28.0,
