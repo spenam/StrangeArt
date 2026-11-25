@@ -64,6 +64,16 @@ With `--system all`, four files are written using the output path as a prefix
 also works for the 2D Hénon system. GIF dimensions are currently fixed at
 480×360 pixels.
 
+For a reusable batch with custom values per attractor, edit the settings in
+`scripts/generate-all-attractors.jl` and run:
+
+```powershell
+julia --project=. scripts\generate-all-attractors.jl
+```
+
+The script writes one GIF per built-in system to `generated-art/`, which is
+ignored by Git.
+
 For custom ODE systems with two or more state variables, provide an in-place
 right-hand side and parameters:
 
@@ -85,7 +95,8 @@ You can pass a different `solver` algorithm if you add its package to the projec
   and system registry.
 - `src/rendering/` contains SVG and GIF output code.
 - `src/animation/` contains parameter-sweep generation for transition GIFs.
-- `bin/` contains the command-line interface, and `test/` contains tests.
+- `bin/` contains the command-line interface, `scripts/` contains reusable
+  batch generation, and `test/` contains tests.
 
 To add a built-in system, put its generator in `src/attractors/` and register
 it in `src/attractors/registry.jl`.
