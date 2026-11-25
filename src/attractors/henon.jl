@@ -18,11 +18,14 @@ function henon_points(;
 )
     iterations >= 0 || throw(ArgumentError("iterations must be non-negative"))
     discard >= 0 || throw(ArgumentError("discard must be non-negative"))
-    all(isfinite, (a, b, x0, y0)) || throw(ArgumentError("parameters must be finite"))
+    all(isfinite, (a, b, x0, y0)) ||
+        throw(ArgumentError("parameters and initial state must be finite"))
 
+    a, b, x, y = Float64(a), Float64(b), Float64(x0), Float64(y0)
+    all(isfinite, (a, b, x, y)) ||
+        throw(ArgumentError("parameters and initial state must fit in Float64"))
     points = NTuple{2, Float64}[]
     sizehint!(points, iterations)
-    x, y = Float64(x0), Float64(y0)
 
     for i in 1:(iterations + discard)
         x, y = 1 - a * x^2 + y, b * x
