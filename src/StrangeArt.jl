@@ -1,6 +1,7 @@
 module StrangeArt
 
-using OrdinaryDiffEq: ODEProblem, Tsit5, solve
+using OrdinaryDiffEqVerner: Vern7
+using SciMLBase: ODEProblem, solve
 
 export available_systems, generate_points, henon_points, lorenz_points, ode_points,
        rossler_points, thomas_points, write_svg
@@ -35,7 +36,7 @@ end
 function ode_points(
     rhs!,
     initial_state;
-    solver=Tsit5(),
+    solver=Vern7(),
     p=nothing,
     duration=100.0,
     dt=0.01,
@@ -73,7 +74,7 @@ function lorenz_points(;
     rho::Real=28.0,
     beta::Real=8 / 3,
     initial_state=(1.0, 0.0, 0.0),
-    solver=Tsit5(),
+    solver=Vern7(),
     duration::Real=100.0,
     dt::Real=0.01,
     discard::Real=20.0,
@@ -93,7 +94,7 @@ function rossler_points(;
     b::Real=0.2,
     c::Real=5.7,
     initial_state=(1.0, 0.0, 0.0),
-    solver=Tsit5(),
+    solver=Vern7(),
     duration::Real=200.0,
     dt::Real=0.01,
     discard::Real=50.0,
@@ -110,7 +111,7 @@ end
 function thomas_points(;
     b::Real=0.208186,
     initial_state=(0.1, 0.0, 0.0),
-    solver=Tsit5(),
+    solver=Vern7(),
     duration::Real=100.0,
     dt::Real=0.01,
     discard::Real=20.0,
