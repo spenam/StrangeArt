@@ -58,6 +58,9 @@ a different `solver` algorithm if you add its package to the project.
 To add a built-in system, put its generator in `src/attractors/` and register
 it in `src/attractors/registry.jl`.
 
+The Julia REPL exposes API descriptions through help mode, for example
+`?ode_points` or `?write_svg`.
+
 ## Run tests
 
 ```powershell
