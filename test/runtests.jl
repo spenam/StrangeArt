@@ -75,9 +75,30 @@ end
         @test endswith(svg, "</svg>\n")
     end
 
+    mktemp() do path, io
+        close(io)
+        write_svg(
+            path,
+            [(0.0, 0.0), (1.0, 1.0), (2.0, 0.0)];
+            width=320,
+            height=240,
+            color_values=[0.0, 0.5, 1.0],
+            colorbar_label="a&b",
+        )
+        svg = read(path, String)
+        @test occursin("#440154", svg)
+        @test occursin("#fde725", svg)
+        @test occursin(">a&amp;b</text>", svg)
+    end
+
     @test_throws ArgumentError write_svg("unused.svg", [(0.0, Inf)])
     @test_throws ArgumentError write_svg("unused.svg", [(0im, 0im)])
     @test_throws ArgumentError write_svg("unused.svg", NTuple{2, Float64}[]; width=0)
+    @test_throws ArgumentError write_svg(
+        "unused.svg",
+        [(0.0, 0.0), (1.0, 1.0)];
+        color_values=[0.0],
+    )
 end
 
 function gif_frame_count(bytes)
