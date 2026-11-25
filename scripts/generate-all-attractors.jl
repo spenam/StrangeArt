@@ -9,6 +9,8 @@ const IMAGE_HEIGHT = 2_400
 const DPI = 300
 
 const SWEEPS = (
+    clifford=(parameter="a", values=range(-1.6, -1.2, length=100)),
+    dejong=(parameter="a", values=range(-2.6, -1.9, length=100)),
     henon=(parameter="a", values=range(0.8, 1.4, length=100)),
     lorenz=(parameter="rho", values=range(20.0, 28.0, length=100)),
     rossler=(parameter="c", values=range(2.0, 6.0, length=100)),
@@ -55,7 +57,11 @@ end
 Generate one orbit for the configured control-parameter value.
 """
 function points_at_parameter(system, value)
-    if system === :henon
+    if system === :clifford
+        return clifford_points(a=value, iterations=POINTS_PER_PARAMETER)
+    elseif system === :dejong
+        return dejong_points(a=value, iterations=POINTS_PER_PARAMETER)
+    elseif system === :henon
         return henon_points(a=value, iterations=POINTS_PER_PARAMETER)
     elseif system === :lorenz
         return lorenz_points(rho=value, points=POINTS_PER_PARAMETER, projection=PROJECTION)
