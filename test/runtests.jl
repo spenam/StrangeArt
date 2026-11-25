@@ -15,6 +15,7 @@ using .StrangeArt
     @test_throws ArgumentError henon_points(iterations=-1)
     @test_throws ArgumentError henon_points(discard=-1)
     @test_throws ArgumentError henon_points(a=Inf)
+    @test_throws ArgumentError henon_points(x0=big"1e1000")
 end
 
 @testset "Clifford and de Jong attractors" begin
@@ -86,6 +87,11 @@ end
     @test_throws ArgumentError ode_points(oscillator!, [1.0])
     @test_throws ArgumentError ode_points(oscillator!, [1.0, 0.0]; points=0)
     @test_throws ArgumentError ode_points(oscillator!, [1.0, 0.0]; projection=:yz)
+    @test_throws ArgumentError ode_points(
+        oscillator!,
+        [1.0, 0.0];
+        dt=big"1e-1000",
+    )
     @test_throws ArgumentError lorenz_points(duration=0.0)
     @test_throws ArgumentError rossler_points(initial_state=(Inf, 0.0, 0.0))
 end
