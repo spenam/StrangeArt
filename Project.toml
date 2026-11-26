@@ -2,6 +2,7 @@ name = "StrangeArt"
 uuid = "3b8c6f6a-5e1d-4c8a-9b23-a9d513f471c0"
 version = "0.1.0"
 authors = ["Santiago Pena Martinez"]
+license = "MIT"
 
 [deps]
 Giflib_jll = "59f7168a-df46-5410-90c8-f2779963d0ec"
