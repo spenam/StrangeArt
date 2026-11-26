@@ -31,6 +31,28 @@ julia --project=. bin\strange-art.jl lorenz.svg --system lorenz --points 50000 -
 julia --project=. bin\strange-art.jl clifford.svg --system clifford --points 50000
 ```
 
+Use a `.png` output path for a density rendering. This accumulates a million
+orbit samples by default and maps occupancy through a logarithmic color scale;
+`--points` changes the sample count:
+
+```powershell
+julia --project=. bin\strange-art.jl lorenz.png --system lorenz --projection xz
+```
+
+The density calculation and color mapping are separate operations. In Julia,
+`density_grid(points; width, height, bounds)` returns a `UInt32` occupancy
+matrix, and `write_density_png(path, grid; scale=:log)` applies the palette.
+Use `scale=:linear` for a linear count mapping.
+
+To compare density renders for all built-in systems, run:
+
+```powershell
+julia --project=. scripts\check-density-rendering.jl
+```
+
+The script writes 1600×1600 PNGs to the ignored `generated-art/` directory.
+Edit its settings to adjust the point count, resolution, or ODE projections.
+
 Available systems are `clifford`, `dejong`, `henon`, `lorenz`, `rossler`, and
 `thomas`. Clifford and de Jong use the 2D maps
 `x' = sin(a*y) + c*cos(a*x), y' = sin(b*x) + d*cos(b*y)` and
