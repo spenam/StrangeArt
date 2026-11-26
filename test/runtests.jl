@@ -287,6 +287,10 @@ function gif_frame_count(bytes)
 end
 
 @testset "Transition GIF export" begin
+    label = zeros(UInt8, 20, 220)
+    @test StrangeArt._draw_gif_text!(label, "a=1.3 b=2.5 c=2.4 d=-2.1") === label
+    @test any(==(0xff), label)
+
     mktempdir() do directory
         henon_path = joinpath(directory, "henon.gif")
         @test write_transition_gif(
