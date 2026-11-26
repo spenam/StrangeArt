@@ -162,3 +162,8 @@ The Julia REPL exposes API descriptions through help mode, for example
 ```powershell
 julia --project=. -e "using Pkg; Pkg.test()"
 ```
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for
+details.
