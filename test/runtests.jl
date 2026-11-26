@@ -202,6 +202,47 @@ end
     )
 end
 
+@testset "Density grid and PNG export" begin
+    grid = density_grid(
+        [(0.0, 0.0), (0.0, 0.0), (1.0, 0.0), (2.0, 1.0), (3.0, 1.0)];
+        width=3,
+        height=2,
+        bounds=(0.0, 2.0, 0.0, 1.0),
+    )
+    @test size(grid) == (2, 3)
+    @test grid[2, 1] == 2
+    @test grid[2, 2] == 1
+    @test grid[1, 3] == 1
+    @test sum(grid) == 4
+
+    singleton = density_grid([(1.0, 1.0)]; width=3, height=3)
+    @test singleton[2, 2] == 1
+    @test sum(singleton) == 1
+
+    pixels = StrangeArt._density_png_pixels(UInt32[0 1 2], :linear)
+    @test pixels[1, 1, :] == UInt8[0x0b, 0x10, 0x20]
+    @test pixels[1, 2, :] != pixels[1, 3, :]
+
+    mktempdir() do directory
+        path = joinpath(directory, "density.png")
+        @test write_density_png(path, grid; dpi=150) == path
+        chunks = read_png_chunks(read(path))
+        @test read_png_uint32(chunks["IHDR"], 1) == 3
+        @test read_png_uint32(chunks["IHDR"], 5) == 2
+        @test read_png_uint32(chunks["pHYs"], 1) == round(UInt32, 150 / 0.0254)
+        @test !isempty(chunks["IDAT"])
+    end
+
+    @test_throws ArgumentError density_grid(Tuple[])
+    @test_throws ArgumentError density_grid([(0.0, Inf)])
+    @test_throws ArgumentError density_grid(
+        [(0.0, 0.0)];
+        bounds=(0.0, 0.0, -1.0, 1.0),
+    )
+    @test_throws ArgumentError write_density_png("unused.png", [-1 1])
+    @test_throws ArgumentError write_density_png("unused.png", [0 1]; scale=:sqrt)
+end
+
 function gif_frame_count(bytes)
     @test bytes[1:6] == collect(codeunits("GIF89a"))
     screen_flags = bytes[11]
