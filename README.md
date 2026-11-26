@@ -118,6 +118,15 @@ frame sweeps `a` from -2.6 to -1.9 (color-coded as in the examples) while
 advancing `b` from -2.5 to 2.5 across 60 frames. PNG frames with 300-DPI
 metadata and the resulting GIF are written under the ignored `generated-art/`.
 
+To make the corresponding density animation, run
+`julia --project=. scripts\generate-dejong-b-density-sweep.jl`. It holds
+`a=1.3`, `c=2.4`, and `d=-2.1` fixed while sweeping `b` from 1.5 to 2.5
+across 100 frames. Each frame uses logarithmic density coloring and labels all
+four parameter values in the upper-left corner. The 800×600 PNG frames and GIF
+are written under the ignored `generated-art/`.
+
+![De Jong density animation with all four parameter values](docs/images/dejong-b-density.gif)
+
 For custom ODE systems with two or more state variables, provide an in-place
 right-hand side and parameters:
 
