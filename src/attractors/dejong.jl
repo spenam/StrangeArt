@@ -9,10 +9,6 @@ Generate points from the Peter de Jong map:
 returned afterward.
 """
 function dejong_points(;
-    #a::Real=-2.24,
-    #b::Real=0.43,
-    #c::Real=-0.65,
-    #d::Real=-2.43,
     a::Real=1.4,
     b::Real=-2.3,
     c::Real=2.4,
