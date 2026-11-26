@@ -8,6 +8,14 @@ written into the PNG physical-resolution metadata.
 `bounds`, when supplied as `(x_min, x_max, y_min, y_max)`, keeps the plot
 scale fixed across related images.
 """
+function _png_pixels_per_meter(dpi)
+    isfinite(dpi) && dpi > 0 || throw(ArgumentError("dpi must be finite and positive"))
+    pixels_per_meter = round(Int, dpi / 0.0254)
+    1 <= pixels_per_meter <= typemax(UInt32) ||
+        throw(ArgumentError("dpi is outside the PNG resolution range"))
+    return pixels_per_meter
+end
+
 function write_sweep_png(
     path::AbstractString,
     points::AbstractVector{<:Tuple};
@@ -28,11 +36,7 @@ function write_sweep_png(
     all(point -> length(point) == 2 && all(value -> value isa Real && isfinite(value), point), points) ||
         throw(ArgumentError("points must contain finite 2D coordinates"))
     all(isfinite, color_values) || throw(ArgumentError("color_values must be finite"))
-    isfinite(dpi) && dpi > 0 || throw(ArgumentError("dpi must be finite and positive"))
-
-    pixels_per_meter = round(Int, dpi / 0.0254)
-    1 <= pixels_per_meter <= typemax(UInt32) ||
-        throw(ArgumentError("dpi is outside the PNG resolution range"))
+    pixels_per_meter = _png_pixels_per_meter(dpi)
 
     pixels = _sweep_png_pixels(
         points,

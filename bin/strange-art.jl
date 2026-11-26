@@ -132,19 +132,31 @@ else
      options.stop === nothing && options.parameter_values === nothing &&
      options.frame_delay == 8) ||
         error("--frames, --start, --stop, --values, and --delay require a .gif output path")
+    density_output = endswith(lowercase(options.output), ".png")
+    points_count = options.points
+    density_output && points_count === nothing && (points_count = 1_000_000)
+
     if options.system in (:clifford, :dejong, :henon)
         options.projection === :xy ||
             error("$(options.system) is 2D; --projection is available for ODE systems")
-        points = options.points === nothing ?
+        points = points_count === nothing ?
                  generate_points(options.system) :
-                 generate_points(options.system; iterations=options.points)
+                 generate_points(options.system; iterations=points_count)
     else
-        points = generate_points(
-            options.system;
-            points=options.points,
-            projection=options.projection,
-        )
+        points = points_count === nothing ?
+                 generate_points(options.system; projection=options.projection) :
+                 generate_points(
+                     options.system;
+                     points=points_count,
+                     projection=options.projection,
+                 )
     end
-    write_svg(options.output, points)
-    println("Wrote $(length(points)) $(options.system) points to $(options.output)")
+    if density_output
+        grid = density_grid(points)
+        write_density_png(options.output, grid)
+        println("Wrote density PNG with $(length(points)) points to $(options.output)")
+    else
+        write_svg(options.output, points)
+        println("Wrote $(length(points)) $(options.system) points to $(options.output)")
+    end
 end
