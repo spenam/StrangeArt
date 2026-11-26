@@ -28,10 +28,20 @@ end
     @test_throws ArgumentError clifford_points(discard=-1)
     @test_throws ArgumentError clifford_points(a=Inf)
 
-    dejong = dejong_points(iterations=2, discard=0)
-    @test dejong[1] == (-1.0, -1.0)
-    @test dejong[2][1] ≈ sin(2.24) - cos(-0.43)
-    @test dejong[2][2] ≈ sin(0.65) - cos(2.43)
+    dejong = dejong_points(iterations=3, discard=0)
+    dejong = dejong_points(iterations=3, discard=0, x0=-1.0, y0=-1.0)
+
+    x1 = sin(1.4 * -1.0) - cos(-2.3 * -1.0)
+    y1 = sin(2.4 * -1.0) - cos(-2.1 * -1.0)
+
+    @test dejong[1][1] ≈ x1
+    @test dejong[1][2] ≈ y1
+
+    x2 = sin(1.4 * y1) - cos(-2.3 * x1)
+    y2 = sin(2.4 * x1) - cos(-2.1 * y1)
+
+    @test dejong[2][1] ≈ x2
+    @test dejong[2][2] ≈ y2
     @test length(dejong_points(iterations=5, discard=0)) == 5
     @test_throws ArgumentError dejong_points(discard=-1)
     @test_throws ArgumentError dejong_points(d=NaN)
